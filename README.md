@@ -4,8 +4,10 @@
 
 Nama | NRP
 --- | ---
-Amoes Noland | 5027231028
-Rafi' Afnaan Fathurrahman | 5027231040
+Ahmad Ibnu Athaillah | 5027241024
+Amoes Noland Taqwiin Rakhman | 5027231028
+I Gede Bagus Saka Afnaan Fathurrahman | 5027231040
+
 
 ## Daftar Isi
 
