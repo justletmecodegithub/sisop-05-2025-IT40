@@ -6,7 +6,7 @@ Nama | NRP
 --- | ---
 Ahmad Ibnu Athaillah | 5027241024
 Amoes Noland Taqwiin Rakhman | 5027231028
-I Gede Bagus Saka Afnaan Fathurrahman | 5027231040
+I Gede Bagus Saka Sinatrya | 5027241088
 
 
 ## Daftar Isi
