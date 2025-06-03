@@ -181,4 +181,6 @@ https://github.com/user-attachments/assets/1cfa66b1-b2f5-4e3e-a4b2-ec8b012f6fbb
 
 ## Laporan
 
-> Isi sesuai pengerjaan.
+https://github.com/user-attachments/assets/c92d3bcd-17f2-4156-aac8-28ce798f1749
+
+
