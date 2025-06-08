@@ -172,13 +172,6 @@ Pada suatu hari, anda merasa sangat lelah dari segala macam praktikum yang sudah
    * `link` : menggabungkan `bootloader.bin`, `kernel.o`, `kernel_asm.o`, dan `std_lib.o` menjadi `floppy.img`.
    * `build` : menjalankan perintah `prepare`, `bootloader`, `stdlib`, `kernel`, dan `link`.
 
-### Video Demonstrasi
-
-[Akses Video dalam Assets](./assets/demo.mp4)
-
-https://github.com/user-attachments/assets/1cfa66b1-b2f5-4e3e-a4b2-ec8b012f6fbb
-
-
 ## Laporan
 
 
