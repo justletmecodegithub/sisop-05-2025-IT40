@@ -180,29 +180,29 @@ Pada suatu hari, anda merasa sangat lelah dari segala macam praktikum yang sudah
 #include "shell.h"      
 #include "std_type.h"   
 
+// Konstanta untuk Manajemen Layar
 #define VIDEO_MEMORY_SEGMENT 0xB800
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 25
 #define DEFAULT_TEXT_ATTRIBUTE 0x07 
 
+// Variabel Global Kernel
 static int g_cursor_x = 0;
 static int g_cursor_y = 0;
 static byte g_current_text_attribute = DEFAULT_TEXT_ATTRIBUTE;
 
-
-static void update_cursor_bios() {
-   
+// Fungsi Kursor bios
+static void update_cursor_bios() { // Memanggil interrupt BIOS INT 0x10, fungsi 0x02 untuk memindahkan kursor ke posisi (g_cursor_y, g_cursor_x).
     int ax = (0x02 << 8); 
     int bx = 0x0000;      
     int dx = (g_cursor_y << 8) | g_cursor_x; 
     _interrupt_invoke(0x10, ax, bx, 0, dx);
 }
 
+// Fungsi scroll
 static void scroll_screen() {
     int x, y;
     unsigned int offset_dst; 
-
-
     y = SCREEN_HEIGHT - 1;
     for (x = 0; x < SCREEN_WIDTH; x++) {
         offset_dst = (y * SCREEN_WIDTH + x) * 2;
@@ -214,12 +214,12 @@ static void scroll_screen() {
     g_cursor_x = 0;
 }
 
-
-
+// Warna text
 void setGlobalTextColor(byte attribute) {
     g_current_text_attribute = attribute;
 }
 
+// Cetak karakter
 void printChar(char c) {
     unsigned int offset;
 
@@ -255,6 +255,7 @@ void printChar(char c) {
     update_cursor_bios();
 }
 
+// Cetak string
 void printString(char *str) {
     int i = 0;
     while (str[i] != '\0') {
@@ -278,12 +279,14 @@ void clearScreen() {
     update_cursor_bios();
 }
 
-char readKeyboardChar() {
+// Baca karakter dari keyboard
+char readKeyboardChar() { // Memanggil INT 0x16, fungsi 0x00 untuk membaca 1 karakter dari keyboard
     int ax_input = (0x00 << 8);
     int returned_ax = _interrupt_invoke(0x16, ax_input, 0, 0, 0);
-    return (char)(returned_ax & 0xFF);
+    return (char)(returned_ax & 0xFF); // Mengembalikan karakter ASCII dari keyboard
 }
 
+// baca string dari keyboard
 void readString(char *buf) {
     int i = 0;
     char c;
@@ -313,7 +316,6 @@ int main() {
     int bx_debug = 0x0007;            
     _interrupt_invoke(0x10, ax_debug, bx_debug, 0, 0); 
  
-
     clearScreen(); 
     setGlobalTextColor(DEFAULT_TEXT_ATTRIBUTE); 
     
@@ -355,23 +357,23 @@ static char* g_yogurtResponses[] = {
     "ts unami gng </3",
     "sygau"
 };
-static int g_yogurtResponseCount = 3; 
+static int g_yogurtResponseCount = 3; // Sesuai dengan jumlah respon di atas
 static unsigned int g_randomSeed = 0;
 
 // Definisi Fungsi Helper 
 static void initRandomSeed() {
     if (g_randomSeed == 0) {
-        g_randomSeed = getBiosTick(); 
+        g_randomSeed = getBiosTick(); // getBiosTick harus dideklarasikan di kernel.h
     }
 }
 
 static int simpleRandom(int max) {
-    if (max <= 0) return 0; 
+    if (max <= 0) return 0; // Tangani kasus max tidak valid
     if (g_randomSeed == 0) {
         initRandomSeed();
     }
     g_randomSeed = (g_randomSeed * 1103515245U + 12345U);
-    return (g_randomSeed / 65536U) % max; 
+    return (g_randomSeed / 65536U) % max; // Kembalikan nilai acak
 }
 
 static void handleUserCommand(char* newName) {
@@ -379,7 +381,7 @@ static void handleUserCommand(char* newName) {
         strcpy(g_currentUsername, "user");
         printString("Username changed to user\n");
     } else {
-  
+	// Batasi panjang username untuk menghindari overflow
         int k = 0;
         while(newName[k] != '\0' && k < USERNAME_MAX_LEN) {
             g_currentUsername[k] = newName[k];
@@ -393,9 +395,10 @@ static void handleUserCommand(char* newName) {
     }
 }
 
+// Mengatur warna teks dan suffix sesuai nama Grand Company
 static void handleGrandCompanyCommand(char* companyName) {
     byte targetColor = TEXT_COLOR_DEFAULT;
-    char* targetSuffix = ""; 
+    char* targetSuffix = "";  // literal string
     bool companyFound = false;
 
     if (strcmp(companyName, "maelstrom") == 0) {
@@ -431,6 +434,7 @@ static void handleClearCommand() {
     g_grandCompanySuffix[0] = '\0';
 }
 
+//  Mengatur perintah matematika
 static void handleMathCommand(char* operation, char* val1Str, char* val2Str) {
     int val1, val2, result;
     char resultBuffer[12]; 
@@ -465,7 +469,7 @@ static void handleMathCommand(char* operation, char* val1Str, char* val2Str) {
 }
 
 static void handleYogurtCommand() {
-    initRandomSeed(); 
+    initRandomSeed(); // Pastikan seed sudah diinisialisasi
     int randomIndex = simpleRandom(g_yogurtResponseCount);
     printString(g_yogurtResponses[randomIndex]);
     printString("\n");
@@ -476,28 +480,28 @@ void parseCommand(char *buf, char *cmd, char arg[2][64]) {
     int i = 0, j = 0;
     cmd[0] = '\0'; arg[0][0] = '\0'; arg[1][0] = '\0';
 
-    while (buf[i] == ' ' && buf[i] != '\0') i++; 
-    while (buf[i] != ' ' && buf[i] != '\0') { 
+    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi awal
+    while (buf[i] != ' ' && buf[i] != '\0') { // Ambil command
         if (j < CMD_BUFFER_SIZE - 1) cmd[j++] = buf[i];
         i++;
     }
     cmd[j] = '\0';
     if (buf[i] == '\0') return;
-    while (buf[i] == ' ' && buf[i] != '\0') i++; 
+    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi
     if (buf[i] == '\0') return;
 
     j = 0;
-    while (buf[i] != ' ' && buf[i] != '\0') { 
+    while (buf[i] != ' ' && buf[i] != '\0') { // Ambil arg1
         if (j < ARG_BUFFER_SIZE - 1) arg[0][j++] = buf[i];
         i++;
     }
     arg[0][j] = '\0';
     if (buf[i] == '\0') return;
-    while (buf[i] == ' ' && buf[i] != '\0') i++; 
+    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi
     if (buf[i] == '\0') return;
     
     j = 0;
-    while (buf[i] != ' ' && buf[i] != '\0') { 
+    while (buf[i] != ' ' && buf[i] != '\0') {  // Ambil arg2
         if (j < ARG_BUFFER_SIZE - 1) arg[1][j++] = buf[i];
         i++;
     }
@@ -527,9 +531,9 @@ void shell() {
         readString(input_buf);
         parseCommand(input_buf, cmd_buf, args_buf);
 
-        if (cmd_buf[0] == '\0') { 
+        if (cmd_buf[0] == '\0') { // Jika hanya enter atau input kosong
             if (input_buf[0] != '\0' && input_buf[0] != '\n' && input_buf[0] != '\r') {
-                printString(input_buf);
+                printString(input_buf); // Echo input mentah jika bukan hanya enter
                 printString("\n");
             }
             continue;
@@ -556,7 +560,7 @@ void shell() {
         } else if (strcmp(cmd_buf, "gurt") == 0) {
             printString("yo\n");
         } else {
-            printString(input_buf); 
+            printString(input_buf); // "The Echo"
             printString("\n");
         }
     }
@@ -564,8 +568,10 @@ void shell() {
 ```
 
 #### std_lib.c
+```c
 #include "std_lib.h" 
 
+//// Jika bool tidak terdefinisi di std_type.h
 #ifndef bool
     #define bool char 
     #define true 1
@@ -576,24 +582,28 @@ void shell() {
     #define byte unsigned char
 #endif
 
+// // Fungsi pembagian integer tanpa menggunakan operator '/'
 int div(int a, int b) {
-    int quotient = 0;
-    int sign = 1;
+    int quotient = 0; // Menyimpan hasil pembagian
+    int sign = 1; // Menyimpan tanda hasil (+/-)
 
-    if (b == 0) {    
+    if (b == 0) { // // Cegah pembagian dengan nol
         return 0;
     }
 
+    // Atur tanda dan ubah a ke nilai positif jika negatif
     if (a < 0) {
         sign = -sign;
         a = -a; 
     }
+
+    // Atur tanda dan ubah b ke nilai positif jika negatif
     if (b < 0) {
         sign = -sign;
         b = -b; 
     }
 
-   
+   // Proses pembagian dengan pengurangan berulang
     while (a >= b) {
         a -= b;
         quotient++;
@@ -602,13 +612,15 @@ int div(int a, int b) {
     return sign * quotient;
 }
 
+// Fungsi modulus menggunakan div()
 int mod(int a, int b) {
     if (b == 0) {
         return a;
     }
-    return a - (div(a, b) * b);
+    return a - (div(a, b) * b); // a mod b = a - (a / b) * b
 }
 
+// Fungsi membandingkan dua string
 bool strcmp(char *str1, char *str2) {
     while (*str1 != '\0' && *str2 != '\0') {
         if (*str1 != *str2) {
@@ -621,6 +633,7 @@ bool strcmp(char *str1, char *str2) {
     return (*str1 == *str2);
 }
 
+// Fungsi menyalin string dari src ke dst
 void strcpy(char *dst, char *src) {
     while (*src != '\0') {
         *dst = *src;
@@ -630,6 +643,7 @@ void strcpy(char *dst, char *src) {
     *dst = '\0'; 
 }
 
+// Fungsi membersihkan buffer dengan 0x00
 void clear(byte *buf, unsigned int size) {
     unsigned int i;
     for (i = 0; i < size; i++) {
@@ -637,12 +651,13 @@ void clear(byte *buf, unsigned int size) {
     }
 }
 
+// Fungsi mengubah string ke integer
 void atoi(char *str, int *num) {
     int result = 0;
     int sign = 1;
     int i = 0;
 
-   
+   // Cek apakah string mengandung tanda - atau +
     if (str[0] == '-') {
         sign = -1;
         i++;
@@ -650,46 +665,42 @@ void atoi(char *str, int *num) {
         i++;
     }
 
-  
+   // Ubah karakter digit menjadi angka
     while (str[i] != '\0') {
         if (str[i] >= '0' && str[i] <= '9') {
             result = result * 10 + (str[i] - '0');
         } else {
-      
-            break;
+            break; // Jika bukan digit, berhenti
         }
         i++;
     }
     *num = result * sign;
 }
 
+// Fungsi mengubah integer ke string
 void itoa(int num, char *str) {
     int i = 0;
     bool isNegative = false;
     int start_index_digits = 0;
 
-  
+    // Kasus khusus: angka 0
     if (num == 0) {
         str[i++] = '0';
         str[i] = '\0';
         return;
     }
 
+    // Tangani bilangan negatif
     if (num < 0) {
         isNegative = true;
-    
-        str[i++] = '-';
-        start_index_digits = 1; 
+        str[i++] = '-'; // Tambahkan tanda minus di depan
+        start_index_digits = 1; // Angka mulai dari index ke-1
     }
 
     int n_temp = num; 
-    if (isNegative) {
-        
-    } else {
-        
-    }
-
     int current_digit_idx = start_index_digits;
+
+    // Jika negatif, konversi digit dengan mengurangkan dari '0'
     if (n_temp < 0) { 
         while (n_temp != 0) {
             str[current_digit_idx++] = '0' - (n_temp % 10); 
@@ -703,6 +714,7 @@ void itoa(int num, char *str) {
     }
     str[current_digit_idx] = '\0'; 
 
+    // Balik digit (karena menyusun dari belakang)
     int j = current_digit_idx - 1;
     int k = start_index_digits;
     while (k < j) {
@@ -717,6 +729,7 @@ void itoa(int num, char *str) {
 
 #### makefile
 ```bash
+# Compiler dan Linker
 AS = nasm
 CC = gcc
 LD = ld
@@ -726,19 +739,31 @@ SRC_DIR = src
 INC_DIR = include
 BIN_DIR = bin
 
+# Pastikan direktori output ada
 $(shell mkdir -p $(BIN_DIR))
 
+# Compiler/Assembler Flags
 ASFLAGS_BOOT = -f bin
+
+# Untuk NASM 
 ASFLAGS_KERNEL_ASM = -f elf
+
+# Untuk GCC 
+# -I$(INC_DIR) memberitahu GCC untuk mencari header di direktori include/
 CFLAGS = -m32 -ffreestanding -nostdlib -Wall -Wextra -c -I$(INC_DIR)
+
+# Untuk LD (link sebagai 32-bit ELF, set kernel entry point/text segment start)
 LDFLAGS_KERNEL = -m elf_i386 -Ttext 0x1000 -nostdlib
+# Untuk OBJCOPY (konversi ELF ke biner mentah)
 OBJCOPYFLAGS = -O binary
 
+# Nama File Output Utama
 BOOTLOADER_BIN = $(BIN_DIR)/bootloader.bin
 KERNEL_ELF = $(BIN_DIR)/kernel.elf
 KERNEL_BIN = $(BIN_DIR)/kernel.bin
 FLOPPY_IMG = $(BIN_DIR)/floppy.img
 
+# File Objek
 STD_LIB_O = $(BIN_DIR)/std_lib.o
 SHELL_O = $(BIN_DIR)/shell.o
 KERNEL_C_O = $(BIN_DIR)/kernel.o
@@ -746,60 +771,81 @@ KERNEL_ASM_O = $(BIN_DIR)/kernel_asm.o
 
 KERNEL_OBJECTS = $(KERNEL_C_O) $(KERNEL_ASM_O) $(STD_LIB_O) $(SHELL_O)
 
+# Phony targets
 .PHONY: all clean prepare bootloader_build stdlib_build shell_build kernel_c_build kernel_asm_build kernel_build link_elf convert_to_bin create_image build
 
+# Default target: running 'make' akan menjalankan 'make all' yang menjalankan 'make build'
 all: build
 
+# Tahapan Build Utama
+
+# Target 'build' utama yang bergantung pada image floppy akhir
 build: $(FLOPPY_IMG)
 	@echo "===> EorzeOS build completed successfully!"
 	@echo "===> Final image: $(FLOPPY_IMG)"
 
+# Membuat image floppy akhir
 $(FLOPPY_IMG): $(BOOTLOADER_BIN) $(KERNEL_BIN)
 	@echo "===> Creating final floppy image: $(FLOPPY_IMG)..."
 	cat $(BOOTLOADER_BIN) $(KERNEL_BIN) > $(FLOPPY_IMG)
 
+# Membuat file disk image kosong awal (opsional jika 'cat' selalu overwrite)
+# Bisa juga digunakan sebagai dependency jika diperlukan oleh langkah lain
 prepare:
 	@echo "===> Preparing empty floppy disk image (1.44MB)..."
 	dd if=/dev/zero of=$(FLOPPY_IMG) bs=512 count=2880 status=none
 
+# Mengompilasi bootloader
 $(BOOTLOADER_BIN): $(SRC_DIR)/bootloader.asm
 	@echo "===> Assembling bootloader: $< -> $@"
 	$(AS) $(ASFLAGS_BOOT) $< -o $@
 
+# Mengompilasi std_lib.c
 $(STD_LIB_O): $(SRC_DIR)/std_lib.c $(INC_DIR)/std_lib.h $(INC_DIR)/std_type.h
 	@echo "===> Compiling stdlib: $< -> $@"
 	$(CC) $(CFLAGS) $< -o $@
 
+# Mengompilasi shell.c
 $(SHELL_O): $(SRC_DIR)/shell.c $(INC_DIR)/shell.h $(INC_DIR)/kernel.h $(INC_DIR)/std_lib.h $(INC_DIR)/std_type.h
 	@echo "===> Compiling shell: $< -> $@"
 	$(CC) $(CFLAGS) $< -o $@
 
+# Mengompilasi kernel.c
 $(KERNEL_C_O): $(SRC_DIR)/kernel.c $(INC_DIR)/kernel.h $(INC_DIR)/shell.h $(INC_DIR)/std_type.h
 	@echo "===> Compiling kernel C code: $< -> $@"
 	$(CC) $(CFLAGS) $< -o $@
 
+# Mengompilasi kernel.asm
 $(KERNEL_ASM_O): $(SRC_DIR)/kernel.asm
 	@echo "===> Assembling kernel ASM code: $< -> $@"
 	$(AS) $(ASFLAGS_KERNEL_ASM) $< -o $@
 
+# Target untuk kernel.elf (hasil linking sebelum konversi ke biner mentah)
 $(KERNEL_ELF): $(KERNEL_OBJECTS)
 	@echo "===> Linking kernel object files into ELF: $@"
 	$(LD) $(LDFLAGS_KERNEL) -o $@ $(KERNEL_OBJECTS)
 
+# Target untuk kernel.bin (biner mentah)
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@echo "===> Converting ELF to raw binary: $< -> $@"
 	$(OBJCOPY) $(OBJCOPYFLAGS) $< $@
+
+
+# --- Target "Perintah" Sesuai Permintaan Awal Anda (opsional, bisa dihapus jika 'make build' cukup) ---
+# Ini adalah target .PHONY yang menjalankan sub-bagian dari build jika dipanggil manual.
+# 'make build' sudah mencakup semuanya secara otomatis karena dependensi file.
 
 bootloader_build: $(BOOTLOADER_BIN)
 stdlib_build: $(STD_LIB_O)
 shell_build: $(SHELL_O)
 kernel_c_build: $(KERNEL_C_O)
 kernel_asm_build: $(KERNEL_ASM_O)
-kernel_build: kernel_c_build kernel_asm_build 
+kernel_build: kernel_c_build kernel_asm_build # Atau langsung $(KERNEL_C_O) $(KERNEL_ASM_O)
 link_elf: $(KERNEL_ELF)
 convert_to_bin: $(KERNEL_BIN)
 create_image: $(FLOPPY_IMG)
 
+# --- Clean Target ---
 clean:
 	@echo "===> Cleaning build directory: $(BIN_DIR)..."
 	rm -rf $(BIN_DIR)
