@@ -3,21 +3,21 @@
 #include "std_lib.h"
 #include "std_type.h" 
 
-// --- Konstanta ---
+// Konstanta
 #define INPUT_BUFFER_SIZE 128
 #define CMD_BUFFER_SIZE 64
 #define ARG_BUFFER_SIZE 64
 #define USERNAME_MAX_LEN 15
 #define SUFFIX_MAX_LEN 15
 
-// Definisi Warna (contoh, sesuaikan dengan implementasi kernel Anda)
+// Definisi Warna 
 #define TEXT_COLOR_DEFAULT 0x07
 #define TEXT_COLOR_RED     0x04
 #define TEXT_COLOR_YELLOW  0x0E
 #define TEXT_COLOR_BLUE    0x01
 
 
-// --- Variabel Global (File-Static) ---
+// Variabel Global 
 static char g_currentUsername[USERNAME_MAX_LEN + 1] = "user";
 static char g_grandCompanySuffix[SUFFIX_MAX_LEN + 1] = "";
 static char* g_yogurtResponses[] = {
@@ -25,10 +25,10 @@ static char* g_yogurtResponses[] = {
     "ts unami gng </3",
     "sygau"
 };
-static int g_yogurtResponseCount = 3; // Sesuai jumlah respons di atas
+static int g_yogurtResponseCount = 3; 
 static unsigned int g_randomSeed = 0;
 
-// --- Definisi Fungsi Helper (File-Static) ---
+// Definisi Fungsi Helper 
 static void initRandomSeed() {
     if (g_randomSeed == 0) {
         g_randomSeed = getBiosTick(); 
@@ -124,9 +124,9 @@ static void handleMathCommand(char* operation, char* val1Str, char* val2Str) {
             printString("Math error: Division by zero.\n");
             return;
         }
-        result = div(val1, val2); // Menggunakan fungsi div dari std_lib.c
+        result = div(val1, val2); 
     } else {
-        printString("Math error: Unknown operation.\n"); // Seharusnya tidak terjadi
+        printString("Math error: Unknown operation.\n"); 
         return;
     }
     itoa(result, resultBuffer);
@@ -135,7 +135,7 @@ static void handleMathCommand(char* operation, char* val1Str, char* val2Str) {
 }
 
 static void handleYogurtCommand() {
-    initRandomSeed(); // Pastikan seed sudah diinisialisasi
+    initRandomSeed(); 
     int randomIndex = simpleRandom(g_yogurtResponseCount);
     printString(g_yogurtResponses[randomIndex]);
     printString("\n");
@@ -146,28 +146,28 @@ void parseCommand(char *buf, char *cmd, char arg[2][64]) {
     int i = 0, j = 0;
     cmd[0] = '\0'; arg[0][0] = '\0'; arg[1][0] = '\0';
 
-    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi awal
-    while (buf[i] != ' ' && buf[i] != '\0') { // Ambil command
+    while (buf[i] == ' ' && buf[i] != '\0') i++; 
+    while (buf[i] != ' ' && buf[i] != '\0') { 
         if (j < CMD_BUFFER_SIZE - 1) cmd[j++] = buf[i];
         i++;
     }
     cmd[j] = '\0';
     if (buf[i] == '\0') return;
-    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi
+    while (buf[i] == ' ' && buf[i] != '\0') i++; 
     if (buf[i] == '\0') return;
 
     j = 0;
-    while (buf[i] != ' ' && buf[i] != '\0') { // Ambil arg1
+    while (buf[i] != ' ' && buf[i] != '\0') { 
         if (j < ARG_BUFFER_SIZE - 1) arg[0][j++] = buf[i];
         i++;
     }
     arg[0][j] = '\0';
     if (buf[i] == '\0') return;
-    while (buf[i] == ' ' && buf[i] != '\0') i++; // Lewati spasi
+    while (buf[i] == ' ' && buf[i] != '\0') i++; 
     if (buf[i] == '\0') return;
     
     j = 0;
-    while (buf[i] != ' ' && buf[i] != '\0') { // Ambil arg2
+    while (buf[i] != ' ' && buf[i] != '\0') { 
         if (j < ARG_BUFFER_SIZE - 1) arg[1][j++] = buf[i];
         i++;
     }
@@ -180,10 +180,7 @@ void shell() {
     char args_buf[2][ARG_BUFFER_SIZE];
     char prompt_buf[USERNAME_MAX_LEN + SUFFIX_MAX_LEN + 3];
 
-    // initRandomSeed(); // Bisa dipanggil sekali di awal shell, atau di handleYogurtCommand
-
     while (true) {
-        // Bentuk prompt
         strcpy(prompt_buf, g_currentUsername);
         if (g_grandCompanySuffix[0] != '\0') {
             int userLen = 0;
@@ -200,9 +197,9 @@ void shell() {
         readString(input_buf);
         parseCommand(input_buf, cmd_buf, args_buf);
 
-        if (cmd_buf[0] == '\0') { // Jika hanya enter atau input kosong
+        if (cmd_buf[0] == '\0') { 
             if (input_buf[0] != '\0' && input_buf[0] != '\n' && input_buf[0] != '\r') {
-                printString(input_buf); // Echo input mentah jika bukan hanya enter
+                printString(input_buf);
                 printString("\n");
             }
             continue;
@@ -229,7 +226,7 @@ void shell() {
         } else if (strcmp(cmd_buf, "gurt") == 0) {
             printString("yo\n");
         } else {
-            printString(input_buf); // "The Echo"
+            printString(input_buf); 
             printString("\n");
         }
     }
