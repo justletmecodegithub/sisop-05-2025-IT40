@@ -46,7 +46,7 @@ int mod(int a, int b) {
 bool strcmp(char *str1, char *str2) {
     while (*str1 != '\0' && *str2 != '\0') {
         if (*str1 != *str2) {
-            return false; // Karakter berbeda
+            return false; 
         }
         str1++;
         str2++;
@@ -61,7 +61,7 @@ void strcpy(char *dst, char *src) {
         dst++;
         src++;
     }
-    *dst = '\0'; // Salin null terminator
+    *dst = '\0'; 
 }
 
 void clear(byte *buf, unsigned int size) {
