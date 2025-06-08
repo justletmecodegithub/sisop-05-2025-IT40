@@ -1,4 +1,4 @@
-# Sisop-5-2025-IT-Template
+# Sisop-5-2025-IT40
 
 ## Kelompok
 
@@ -203,11 +203,11 @@ static void update_cursor_bios() { // Memanggil interrupt BIOS INT 0x10, fungsi 
 static void scroll_screen() {
     int x, y;
     unsigned int offset_dst; 
-    y = SCREEN_HEIGHT - 1;
+    y = SCREEN_HEIGHT - 1; // Baris terakhir
     for (x = 0; x < SCREEN_WIDTH; x++) {
-        offset_dst = (y * SCREEN_WIDTH + x) * 2;
-        _putInMemory(VIDEO_MEMORY_SEGMENT, offset_dst, ' '); 
-        _putInMemory(VIDEO_MEMORY_SEGMENT, offset_dst + 1, g_current_text_attribute);
+        offset_dst = (y * SCREEN_WIDTH + x) * 2;  // Hitung offset 
+        _putInMemory(VIDEO_MEMORY_SEGMENT, offset_dst, ' '); // Kosongkan karakter
+        _putInMemory(VIDEO_MEMORY_SEGMENT, offset_dst + 1, g_current_text_attribute); // Set warna
     }
 
     g_cursor_y = SCREEN_HEIGHT - 1;
@@ -223,12 +223,12 @@ void setGlobalTextColor(byte attribute) {
 void printChar(char c) {
     unsigned int offset;
 
-    if (c == '\n') {
+    if (c == '\n') {  // Enter: pindah ke baris baru
         g_cursor_y++;
         g_cursor_x = 0;
-    } else if (c == '\r') {
+    } else if (c == '\r') {  // Carriage return: kembali ke awal baris
         g_cursor_x = 0;
-    } else if (c == '\b') {
+    } else if (c == '\b') {  // Backspace
         if (g_cursor_x > 0) {
             g_cursor_x--;
             offset = (g_cursor_y * SCREEN_WIDTH + g_cursor_x) * 2;
@@ -236,7 +236,7 @@ void printChar(char c) {
             _putInMemory(VIDEO_MEMORY_SEGMENT, offset + 1, g_current_text_attribute);
         } else if (g_cursor_y > 0) {
             g_cursor_y--;
-            g_cursor_x = SCREEN_WIDTH - 1;
+            g_cursor_x = SCREEN_WIDTH - 1;  // Kembali ke ujung baris sebelumnya
         }
     } else if (c >= ' ') {
         offset = (g_cursor_y * SCREEN_WIDTH + g_cursor_x) * 2;
