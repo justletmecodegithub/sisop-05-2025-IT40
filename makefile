@@ -76,7 +76,7 @@ stdlib_build: $(STD_LIB_O)
 shell_build: $(SHELL_O)
 kernel_c_build: $(KERNEL_C_O)
 kernel_asm_build: $(KERNEL_ASM_O)
-kernel_build: kernel_c_build kernel_asm_build # Atau langsung $(KERNEL_C_O) $(KERNEL_ASM_O)
+kernel_build: kernel_c_build kernel_asm_build 
 link_elf: $(KERNEL_ELF)
 convert_to_bin: $(KERNEL_BIN)
 create_image: $(FLOPPY_IMG)
